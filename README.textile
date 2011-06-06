@@ -1,0 +1,78 @@
+h1(#title). Marrow NORM
+
+bq(subtitle). A layer extending pyMongo to include transactional support; not an object relational mapper!
+
+bq(byline). (C) 2011, Le Site Ltd.
+
+bq(byline). "https://github.com/lesite/marrow.norm":github-project
+
+[github-project]https://github.com/lesite/marrow.norm
+
+
+
+h2(#what-is). %1.% What is Marrow NORM?
+
+Marrow NORM is a light-weight schema and validation system with support for transactions a la true relational databases built on top of @pyMongo@.  This package is currently in the planning stage.  Expected features include:
+
+* Transaction support.
+** `repoze.tm2` support.
+** Context manager-based micro-transactions.
+** Weak vs. strong transactions: weak reverse the operations, strong do not perform any updates until transaction commit.
+* Light-weight declarative schema creation.
+* Dictionary-based schema creation to allow loading schema from on-disk YAML.
+* Data / schema validation.
+* Data difference (dirty/diff/delta) calculations.  (Returning a 3-tuple of added, deleted, and changed values.)
+* Explicit data migration patterns.  ([Don't] create missing, [don't] delete extraneous.)
+* Explicit data caching patterns.  (No, global, thread local, and transaction local caching.)
+* Explicit conflict resolution patterns.  (Set and forget, callback, retry, die.)
+* Intelligent, configurable loading of related data.
+* Transaction logging for development replay.
+* Delayed transaction commit 'receipts' via Futures.
+
+Marrow NORM makes heavy use of MongoDB atomic operations and "fail if different" updates.
+
+Far-future goals include:
+
+* An OO map/reduce builder for building complex queries.
+* Helpers for using MongoDB as a distributed queue.
+* Python @logging@ handler.
+
+
+h2(#installation). %2.% Installation
+
+Installing @marrow.norm@ is easy, just execute the following in a terminal:
+
+<pre><code>pip install marrow.norm</code></pre>
+
+If you add @marrow.norm@ to the @install_requires@ argument of the call to @setup()@ in your application's @setup.py@ file, @marrow.script@ will be automatically installed and made available when your own application is installed.
+
+
+h3(#install-dev). %2.1.% Development Version
+
+Development takes place on "GitHub":github in the "marrow.norm":github-project project.  Issue tracking, documentation, and downloads are provided there.
+
+Installing the current development version requires "Git":git, a distributes source code management system.  If you have Git, you can run the following to download and _link_ the development version into your Python runtime:
+
+<pre><code>git clone https://github.com/lesite/marrow.norm.git
+(cd marrow.norm; python setup.py develop)</code></pre>
+
+You can upgrade to the latest version at any time:
+
+<pre><code>(cd marrow.norm; git pull; python setup.py develop)</code></pre>
+
+If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes, and submit a pull request.  This process is beyond the scope of this documentation; for more information, see "GitHub's documentation":github-help.
+
+
+[github]https://github.com/
+[git]http://git-scm.com/
+[github-help]http://help.github.com/
+
+
+
+h2(#basic). %3.% Basic Usage
+
+
+
+h2(#license). %6.% Marrow NORM License
+
+Marrow Script has been released under the Lesser GNU Public License.  A textual copy of the full license text is included in the source code repository and is bundled with each release.  For details, please see the accompanying LICENSE file.
