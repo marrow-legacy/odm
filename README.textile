@@ -28,6 +28,7 @@ Marrow NORM is a light-weight schema and validation system with support for tran
 * Intelligent, configurable loading of related data.
 * Transaction logging for development replay.
 * Delayed transaction commit 'receipts' via Futures.
+* Optional production mode disabling of schema validation.
 
 Marrow NORM makes heavy use of MongoDB atomic operations and "fail if different" updates.
 
