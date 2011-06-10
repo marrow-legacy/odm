@@ -7,17 +7,14 @@ import threading
 
 from marrow.util.convert import array, boolean
 from marrow.util.url import URL
-from marrow.util.tuple import NamedTuple
 from marrow.norm.exception import ConnectionError
+from marrow.norm.tuples import ConnectionInstance
 
 from pymongo import Connection as PyMongoConnection
 
 
 __all__ = ['Connection']
 
-
-class ConnectionInstance(NamedTuple):
-    _fields = ('connection', 'db')
 
 
 class Connection(object):
@@ -44,9 +41,9 @@ class Connection(object):
         
         self.log.info("Marrow NORM connecting to: %s", self.url)
         
-        self()
+        self.components()
     
-    def __call__(self, reconnect=False):
+    def components(self, reconnect=False):
         url = self.url
         pool = self.pool
         identity = self.identity()
