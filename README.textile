@@ -2,7 +2,7 @@ h1(#title). Marrow NORM
 
 bq(subtitle). A layer extending pyMongo to include transactional support; not an object relational mapper!
 
-bq(byline). (C) 2011, Le Site Ltd.
+bq(byline). (C) 2011, Le Site Inc. and contributors.
 
 bq(byline). "https://github.com/lesite/marrow.norm":github-project
 
