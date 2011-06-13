@@ -32,6 +32,8 @@ class Document(object):
             safe = True, # are operations safe by default?
         )
     
+    _meta = InheritedMetadata()
+    
     def __init__(self, **kw):
         pass
     
