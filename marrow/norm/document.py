@@ -98,19 +98,7 @@ class Document(object):
             if name in consumed:
                 raise TypeError('%s got multiple values for keyword argument \'%s\'' % (self.__class__.__name__, name))
             
-            self[name] = kw.get(name)
-    
-    def __getitem__(self, name):
-        if name not in self.__fields__:
-            raise KeyError(name)
-        
-        return getattr(self, name)
-    
-    def __setitem__(self, name, value):
-        if name not in self.__fields__:
-            raise KeyError(name)
-        
-        setattr(self, name, value)
+            setattr(self, name, kw.get(name))
     
     def __iter__(self):
         return iter(self.__fields__)

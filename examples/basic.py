@@ -29,7 +29,7 @@ class PasswordCredential(Credential):
     
     @password.setter
     def password(self, value):
-        salt = ''.join([choice(string.printable) for i in range(64)])
+        salt = b''.join([choice(string.printable) for i in range(64)])
         self.__password = scrypt.encrypt(salt, value, maxtime=self.difficulty)
     
     @password.deleter
