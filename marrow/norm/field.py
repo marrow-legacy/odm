@@ -3,6 +3,10 @@
 from __future__ import unicode_literals
 
 
+from marrow.util.object import NoDefault
+
+
+
 class Field(object):
     default = NoDefault
     
@@ -18,8 +22,11 @@ class Field(object):
         return "%s()" % (self.__class__.__name__, )
     
     def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        
         try:
-            return obj[self.header]
+            return obj[self.key]
         
         except KeyError:
             pass
@@ -56,7 +63,7 @@ class Field(object):
         del obj[self.header]
 
 
-class Int(ReaderWriter):
+class Integer(Field):
     def __get__(self, obj, cls):
         try:
             return int(super(Int, self).__get__(obj, cls))
@@ -67,3 +74,29 @@ class Int(ReaderWriter):
     
     def __set__(self, obj, value):
         super(Int, self).__set__(obj, binary(value))
+
+
+class String(Field):
+    pass
+
+
+class Float(Field):
+    pass
+
+
+class List(Field):
+    pass
+
+
+class Embed(Field):
+    pass
+
+
+class IPAddress(Field):
+    pass
+
+
+class DateTime(Field):
+    pass
+
+

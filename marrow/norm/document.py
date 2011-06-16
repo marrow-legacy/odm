@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 
 import pymongo.errors
 
+from marrow.util.text import normalize
 from marrow.util.object import NoDefault
 from marrow.norm.connection import Connection
 from marrow.norm.exception import OperationError
+from marrow.norm.field import Field
 
 
 log = __import__('logging').getLogger(__name__)
@@ -23,16 +25,47 @@ class Document(object):
     The schema is defined using Field instances as class attributes.
     """
     
+    class __metaclass__(type):
+        def __new__(meta, name, bases, attrs):
+            fields = list()
+            metadata = dict()
+            
+            for base in list(bases):
+                fields.extend(base.__dict__.get('__fields__', []))
+                
+                _ = base.__dict__.get('__meta__', dict())
+                _['index'] = metadata.get('index', []) + _.get('index', [])
+                
+                metadata.update(_)
+            
+            for name_ in attrs:
+                value = attrs.get(name_)
+                
+                if isinstance(value, Field):
+                    if not value.key:
+                        value.key = normalize(name_, fields)
+                    
+                    fields.append(name_)
+            
+            metadata.update(attrs.get('__meta__', dict()))
+            
+            metadata['collection'] = metadata['collection'](name) if hasattr(metadata['collection'], '__call__') else metadata['collection']
+            
+            attrs['__fields__'] = fields
+            attrs['__meta__'] = metadata
+            
+            cls = type.__new__(meta, name, bases, attrs)
+            
+            return cls
+    
     __meta__ = dict(
-            collection = lambda cls: cls.__name__.lower(),
+            collection = lambda name: normalize(name) + 's',
             index = [], # list of tuples indicating indexes to create
             order = tuple(), # default sort order
             inheritable = True, # allow same-collection document inheritance
             capped = False, # False or a marrow.norm.tuples.CappedLimit instance
             safe = True, # are operations safe by default?
         )
-    
-    _meta = InheritedMetadata()
     
     def __init__(self, **kw):
         pass
