@@ -3,11 +3,12 @@
 from __future__ import unicode_literals
 
 
-from marrow.util.object import NoDefault
+from marrow.util.object import NoDefault, CounterMeta
 
 
 
 class Field(object):
+    __metaclass__ = CounterMeta
     default = NoDefault
     
     def __init__(self, key=None, required=False, default=NoDefault, unique=False, primary=False, validator=None):
@@ -26,54 +27,36 @@ class Field(object):
             return self
         
         try:
-            return obj[self.key]
+            return obj.__data__[self.key]
         
         except KeyError:
             pass
         
         if self.default is not NoDefault:
             if hasattr(self.default, '__call__'):
-                value = self.default(obj)
-                
-                # Not sure if we really want to store the value...
-                # Content-Length and Content-MD5 regeneration are useful!
-                # if self.rw:
-                #     obj[self.header] = value
-                
-                return value
+                return self.default(obj)
             
             return self.default
         
-        raise AttributeError('WSGI environment does not contain %s key.' % (self.header, ))
+        if not self.required:
+            return None
+        
+        raise AttributeError('Data for \'%s\' is missing.' % (self.key, ))
     
     def __set__(self, obj, value):
-        if not self.rw or obj.final:
-            raise AttributeError('%s is a read-only value.' % (self.header, ))
-        
-        if value is None:
-            del obj[self.header]
+        if value is self.default:
+            del obj.__data__[self.key]
             return
         
-        obj[self.header] = value
+        obj.__data__[self.key] = value
     
     def __delete__(self, obj):
-        if not self.rw or obj.final:
-            raise AttributeError('%s is a read-only value.' % (self.header, ))
-        
-        del obj[self.header]
+        del obj.__data__[self.key]
 
 
 class Integer(Field):
     def __get__(self, obj, cls):
-        try:
-            return int(super(Int, self).__get__(obj, cls))
-        except AttributeError:
-            return None
-        except TypeError:
-            return None
-    
-    def __set__(self, obj, value):
-        super(Int, self).__set__(obj, binary(value))
+        return int(super(Integer, self).__get__(obj, cls))
 
 
 class String(Field):

@@ -6,6 +6,7 @@ import pymongo.errors
 
 from marrow.util.text import normalize
 from marrow.util.object import NoDefault
+from marrow.util.bunch import Bunch
 from marrow.norm.connection import Connection
 from marrow.norm.exception import OperationError
 from marrow.norm.field import Field
@@ -29,34 +30,48 @@ class Document(object):
         def __new__(meta, name, bases, attrs):
             fields = list()
             metadata = dict()
+            path = list()
             
             for base in list(bases):
+                if '__meta__' not in base.__dict__:
+                    continue
+                
                 fields.extend(base.__dict__.get('__fields__', []))
                 
-                _ = base.__dict__.get('__meta__', dict())
+                if not base.__meta__['inheritable']:
+                    path = list()
+                
+                _ = dict(base.__dict__.get('__meta__', dict()))
                 _['index'] = metadata.get('index', []) + _.get('index', [])
+                
+                if base is not Document:
+                    path.append(base.__name__)
                 
                 metadata.update(_)
             
-            for name_ in attrs:
-                value = attrs.get(name_)
-                
+            path.append(name)
+            metadata.update(attrs.get('__meta__', dict()))
+            
+            if callable(metadata.get('collection', None)):
+                attrs['__collection__'] = metadata['collection'](path[0])
+            
+            else:
+                attrs['__collection__'] = metadata['collection']
+            
+            metadata['path'] = '.'.join(path) # use real dot-colon notation here
+            
+            attrs['__meta__'] = Bunch(metadata)
+            
+            for name_, value in sorted([(i, attrs[i]) for i in attrs if isinstance(attrs[i], Field)], cmp=lambda l,r: cmp(l[1]._counter, r[1]._counter)):
                 if isinstance(value, Field):
                     if not value.key:
                         value.key = normalize(name_, fields)
                     
                     fields.append(name_)
             
-            metadata.update(attrs.get('__meta__', dict()))
+            attrs['__fields__'] = list(fields)
             
-            metadata['collection'] = metadata['collection'](name) if hasattr(metadata['collection'], '__call__') else metadata['collection']
-            
-            attrs['__fields__'] = fields
-            attrs['__meta__'] = metadata
-            
-            cls = type.__new__(meta, name, bases, attrs)
-            
-            return cls
+            return type.__new__(meta, name, bases, attrs)
     
     __meta__ = dict(
             collection = lambda name: normalize(name) + 's',
@@ -65,41 +80,62 @@ class Document(object):
             inheritable = True, # allow same-collection document inheritance
             capped = False, # False or a marrow.norm.tuples.CappedLimit instance
             safe = True, # are operations safe by default?
+            pk = '_id', # primary key
         )
     
-    def __init__(self, **kw):
-        pass
+    def __init__(self, *args, **kw):
+        self.__data__ = dict(_cls=self.__meta__.path)
+        
+        remaining = list(self.__fields__)
+        consumed = list()
+        
+        for arg in args:
+            name = remaining.pop(0)
+            self[name] = arg
+            consumed.append(name)
+        
+        for name in kw:
+            if name in consumed:
+                raise TypeError('%s got multiple values for keyword argument \'%s\'' % (self.__class__.__name__, name))
+            
+            self[name] = kw.get(name)
     
     def __getitem__(self, name):
-        if name not in self._meta.field.names:
+        if name not in self.__fields__:
             raise KeyError(name)
         
         return getattr(self, name)
     
     def __setitem__(self, name, value):
-        if name not in self._meta.field.names:
+        if name not in self.__fields__:
             raise KeyError(name)
         
         setattr(self, name, value)
     
     def __iter__(self):
-        return iter(self._meta.field.names)
+        return iter(self.__fields__)
     
     def __contains__(self, name):
-        return name in self._meta.field.names
+        return name in self.__fields__
     
     def __len__(self):
         return len(self._data)
     
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__,
-            ", ".join([("%s=%s" % (i, getattr(self, i))) for i in self._meta.field.names]))
+            ", ".join([("%s=%s" % (i, getattr(self, i))) for i in self.__fields__]))
     
     def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return getattr(self, self._meta.identifier) == getattr(other, other._meta.identifier)
+        if not isinstance(other, self.__class__):
+            return False
         
-        return False
+        if self.__meta__.collection != other.__meta__.collection:
+            return False
+        
+        if self.__meta__.pk != other.__meta__.pk:
+            return False
+        
+        return getattr(self, self.__meta__.pk) == getattr(other, other.__meta__.pk)
     
     def __ne__(self, other):
         return not self.__eq__(other)
