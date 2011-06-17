@@ -20,7 +20,7 @@ class Credential(Document):
 
 
 class PasswordCredential(Credential):
-    __password = String(key='p')
+    __password = Text(key='p')
     difficulty = Float(key='d', default=0.5) # seconds
     
     @property
@@ -29,7 +29,7 @@ class PasswordCredential(Credential):
     
     @password.setter
     def password(self, value):
-        salt = b''.join([choice(string.printable) for i in range(64)])
+        salt = b''.join([choice(Text.printable) for i in range(64)])
         self.__password = scrypt.encrypt(salt, value, maxtime=self.difficulty)
     
     @password.deleter
@@ -47,19 +47,21 @@ class PasswordCredential(Credential):
 
 
 class FailedLogin(Document):
+    __meta__ = dict(collection=None)
+    
     location = IPAddress(key='ip')
     when = DateTime(key='ts', default=lambda: datetime.utcnow())
 
 
 class User(Document):
-    identity = String(required=True)
-    credentials = List(Embed, Credential)
+    identity = Text(required=True)
+    credentials = List(Credential)
     
     created = DateTime()
     modified = DateTime()
     
     last = DateTime()
-    failed = List(Embed, FailedLogin)
+    failed = List(FailedLogin)
 
 
 if __name__ == '__main__':
