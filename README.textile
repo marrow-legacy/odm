@@ -32,11 +32,12 @@ Marrow NORM is a light-weight schema and validation system with support for tran
 
 Marrow NORM makes heavy use of MongoDB atomic operations and "fail if different" updates.
 
-Far-future goals include:
+Possibly not so far-future goals include:
 
 * An OO map/reduce builder for building complex queries.
-* Helpers for using MongoDB as a distributed queue.
+* Helpers for using MongoDB as a distributed queue / Futures-like RPC.
 * Python @logging@ handler.
+* Full text search indexing and OKAPI BM25 search ranking.
 
 
 h2(#installation). %2.% Installation
