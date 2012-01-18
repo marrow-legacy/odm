@@ -61,7 +61,7 @@ class User(Document):
     modified = DateTime()
     
     last = DateTime()
-    failed = List(FailedLogin)
+    failed = List(FailedLogin, lazy=True)
 
 
 if __name__ == '__main__':
